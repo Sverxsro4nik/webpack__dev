@@ -1,10 +1,12 @@
 // Подключаем необходимые плагины и константы
+const webpack =  require('webpack');
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const {CleanWebpackPlugin} = require('clean-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CopyPlugin = require("copy-webpack-plugin");
 
+const ASSET_PATH = process.env.ASSET_PATH || '/';
 
 // Настройки для разработки
 module.exports = {
@@ -19,6 +21,9 @@ module.exports = {
         contentBase: path.join(__dirname, 'dist'),
         port: 9000
     },
+    output: {
+        publicPath: ASSET_PATH,
+    },
     // настройка модулей
     module: {
         rules: [
@@ -32,9 +37,9 @@ module.exports = {
                 test: /\.scss$/i,
                 use: [MiniCssExtractPlugin.loader, 'css-loader', 'sass-loader']
             },
-            // обработка изображений
             {
                 test: /\.(png|jpe?g|gif|svg)$/i,
+                include: path.join(__dirname, 'src'),
                 use: 'file-loader'
             },
             // обработка шрифтов
@@ -44,13 +49,16 @@ module.exports = {
                 options: {
                     type: 'asset',
                     name: 'fonts/[name].[ext]',
-                    publicPath: 'fonts'
+                    publicPath: './fonts'
                 }
             }
         ]
     },
     // настройка плагинов
     plugins:[
+        new webpack.DefinePlugin({
+            'process.env.ASSET_PATH': JSON.stringify(ASSET_PATH),
+          }),
         // очистка папки для продакшена
         new CleanWebpackPlugin({ cleanStaleWebpackAssets: false}),
         // генерация файлов HTML автоматически
@@ -68,10 +76,10 @@ module.exports = {
           })
     ],
     // точки выхода. Файлы которые будут сгенерированы
-    output: {
-        filename: '[name].[contenthash].js',
-        path: path.resolve(__dirname, 'dist'),
-    },
+    // output: {
+    //     filename: '[name].[contenthash].js',
+    //     path: path.resolve(__dirname, 'dist'),
+    // },
     // оптимизация готовых файлов
     optimization: {
         moduleIds: 'deterministic',
